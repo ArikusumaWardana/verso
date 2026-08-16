@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DocumentActions } from "@/components/document-actions";
-import { resolveArchivedImages } from "@/lib/ingestion";
+import { resolveArchivedImages } from "@/lib/reader-html";
 
 export const dynamic = "force-dynamic";
 

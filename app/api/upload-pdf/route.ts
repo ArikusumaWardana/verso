@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { excerpt, MAX_PDF_BYTES, parsePdf, readingTime } from "@/lib/ingestion";
@@ -12,29 +11,38 @@ export async function POST(request: Request) {
   const userId = claimsData?.claims?.sub;
   if (!userId) return NextResponse.json({ error: "Sesi sudah berakhir. Masuk kembali." }, { status: 401 });
 
+  let path: string | null = null;
   try {
-    const form = await request.formData();
-    const file = form.get("file");
-    if (!(file instanceof File) || file.type !== "application/pdf") throw new Error("Pilih berkas PDF yang valid");
-    if (file.size > MAX_PDF_BYTES) throw new Error("PDF maksimal 50 MB");
+    const body = await request.json() as { documentId?: string; fileName?: string; fileSize?: number };
+    const documentId = body.documentId?.trim() ?? "";
+    const fileName = body.fileName?.trim() ?? "";
+    const fileSize = body.fileSize;
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(documentId)) {
+      throw new Error("Identitas PDF tidak valid");
+    }
+    if (!fileName.toLowerCase().endsWith(".pdf")) throw new Error("Pilih berkas PDF yang valid");
+    if (!Number.isInteger(fileSize) || !fileSize || fileSize < 1 || fileSize > MAX_PDF_BYTES) {
+      throw new Error("PDF maksimal 50 MB");
+    }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    path = `${userId}/${documentId}/original.pdf`;
+    const { data: storedFile, error: downloadError } = await supabase.storage.from("raw-documents").download(path);
+    if (downloadError) throw downloadError;
+    if (storedFile.size !== fileSize) throw new Error("Ukuran PDF yang diunggah tidak sesuai");
+    const buffer = Buffer.from(await storedFile.arrayBuffer());
     const parsed = await parsePdf(buffer);
-    const documentId = randomUUID();
-    const path = `${userId}/${documentId}/original.pdf`;
-    const { error: uploadError } = await supabase.storage.from("raw-documents").upload(path, buffer, { contentType: "application/pdf", upsert: false });
-    if (uploadError) throw uploadError;
 
-    const title = file.name.replace(/\.pdf$/i, "").trim() || "Paper tanpa judul";
+    const title = fileName.replace(/\.pdf$/i, "").trim().slice(0, 500) || "Paper tanpa judul";
     const { error } = await supabase.from("documents").insert({
       id: documentId, user_id: userId, type: "pdf", source: "file_upload", title,
       content_text: parsed.text, excerpt: excerpt(parsed.text), raw_file_path: path,
-      raw_file_size_bytes: file.size, page_count: parsed.pageCount,
+      raw_file_size_bytes: fileSize, page_count: parsed.pageCount,
       reading_time_minutes: readingTime(parsed.text)
     });
-    if (error) { await supabase.storage.from("raw-documents").remove([path]); throw error; }
+    if (error) throw error;
     return NextResponse.json({ id: documentId }, { status: 201 });
   } catch (error) {
+    if (path) await supabase.storage.from("raw-documents").remove([path]);
     return NextResponse.json({ error: error instanceof Error ? error.message : "PDF tidak dapat disimpan" }, { status: 400 });
   }
 }

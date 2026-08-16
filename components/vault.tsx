@@ -10,6 +10,7 @@ import type { Document, DocumentType } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { logout } from "@/app/login/actions";
+import { createClient as createBrowserClient } from "@/lib/supabase/client";
 
 type Filter = "all" | DocumentType | "starred";
 
@@ -217,10 +218,45 @@ function AddDialog({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
     event.preventDefault();
     if (!selectedPdf) { setError("Pilih PDF sebelum menyimpan"); return; }
     setBusy(true); setError(null);
-    const data = new FormData(); data.set("file", selectedPdf);
-    const response = await fetch("/api/upload-pdf", { method: "POST", body: data });
-    const result = await response.json(); setBusy(false);
-    if (!response.ok) { setError(result.error || "PDF tidak dapat disimpan"); return; }
+    const supabase = createBrowserClient();
+    if (!supabase) {
+      setBusy(false);
+      setError("Konfigurasi Supabase belum tersedia");
+      return;
+    }
+
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      setBusy(false);
+      setError("Sesi sudah berakhir. Masuk kembali.");
+      return;
+    }
+
+    const documentId = crypto.randomUUID();
+    const storagePath = `${userData.user.id}/${documentId}/original.pdf`;
+    const { error: uploadError } = await supabase.storage.from("raw-documents").upload(storagePath, selectedPdf, {
+      contentType: "application/pdf",
+      upsert: false
+    });
+    if (uploadError) {
+      setBusy(false);
+      setError(uploadError.message || "PDF tidak dapat diunggah");
+      return;
+    }
+
+    const response = await fetch("/api/upload-pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ documentId, fileName: selectedPdf.name, fileSize: selectedPdf.size })
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      await supabase.storage.from("raw-documents").remove([storagePath]);
+      setBusy(false);
+      setError(result.error || "PDF tidak dapat diproses");
+      return;
+    }
+    setBusy(false);
     onSaved();
   }
   return (

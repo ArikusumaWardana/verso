@@ -124,17 +124,6 @@ export function attachArchivedImages(contentHtml: string, baseUrl: URL, storageP
   return dom.window.document.body.innerHTML;
 }
 
-export function resolveArchivedImages(contentHtml: string, signedUrls: Map<string, string>) {
-  const dom = new JSDOM(`<body>${contentHtml}</body>`);
-  for (const image of dom.window.document.body.querySelectorAll("img[data-verso-path]")) {
-    const path = image.getAttribute("data-verso-path");
-    const signedUrl = path ? signedUrls.get(path) : null;
-    if (signedUrl) image.setAttribute("src", signedUrl);
-    image.removeAttribute("data-verso-path");
-  }
-  return dom.window.document.body.innerHTML;
-}
-
 export async function parsePdf(buffer: Buffer) {
   const parser = new PDFParse({ data: new Uint8Array(buffer) });
   try {
