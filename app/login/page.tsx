@@ -1,7 +1,8 @@
-import { login, signup } from "./actions";
+import { login } from "./actions";
 import { BookOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { AuthSubmitButtons } from "@/components/auth-submit-buttons";
 
 export const dynamic = "force-dynamic";
 
@@ -31,8 +32,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <input id="email" name="email" type="email" autoComplete="email" required />
           <label htmlFor="password">Kata sandi</label>
           <input id="password" name="password" type="password" autoComplete="current-password" minLength={6} required />
-          <button className="primary-button" type="submit">Buka arsip</button>
-          <button className="secondary-button" type="submit" formAction={signup}>Buat akun pertama</button>
+          <AuthSubmitButtons />
           <p className="form-note">Akun dibuat dan dikelola melalui Supabase Auth.</p>
         </form>
       </section>

@@ -1,14 +1,20 @@
 import { Vault } from "@/components/vault";
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import { withSignedCoverUrls } from "@/lib/document-covers";
+import { LandingPage } from "@/components/landing-page";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Verso | Arsip artikel & paper yang bisa dicari sampai ke isinya",
+  description: "Verso menyimpan artikel web dan paper PDF di satu tempat, lalu membuatnya bisa dicari secara penuh dari judul sampai isi paragraf dalam hitungan milidetik."
+};
 
 export default async function Home() {
   const supabase = await createClient();
   const { data: claimsData } = await supabase.auth.getClaims();
-  if (!claimsData?.claims) redirect("/login");
+  if (!claimsData?.claims) return <LandingPage />;
 
   const { data, error } = await supabase
     .from("documents")

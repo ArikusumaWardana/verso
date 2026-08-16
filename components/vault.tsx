@@ -119,7 +119,7 @@ export function Vault({ initialDocuments = [], userEmail, loadError }: { initial
       return;
     }
 
-    window.location.replace("/login");
+    window.location.replace("/");
   }
 
   async function handleSaved() {
