@@ -1,0 +1,80 @@
+:root {
+  color-scheme: light dark;
+  --paper: #faf7f0;
+  --surface: #ffffff;
+  --ink: #1f1b16;
+  --secondary: #6b6355;
+  --muted: #9c9484;
+  --border: #e8e1d3;
+  --accent: #b5502e;
+  --accent-soft: #f1ddd2;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  width: 340px;
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 14px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+main { padding: 20px; }
+header { padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.wordmark { margin: 0 0 8px; font: 600 24px/1.1 Georgia, serif; }
+.tab-title { margin: 0; color: var(--secondary); }
+section { padding-top: 16px; }
+label { display: block; margin-bottom: 7px; color: var(--secondary); font-size: 12px; }
+
+input,
+button,
+.login-link {
+  min-height: 44px;
+  border-radius: 6px;
+  font: inherit;
+}
+
+input {
+  width: 100%;
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--ink);
+  outline: none;
+}
+
+input:focus { border-color: var(--accent); }
+
+button {
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid var(--accent);
+  padding: 10px 14px;
+  background: var(--accent);
+  color: #fffaf5;
+  cursor: pointer;
+}
+
+button:disabled { cursor: wait; opacity: .65; }
+button:active { transform: translateY(1px); }
+button.quiet { border-color: transparent; background: transparent; color: var(--secondary); }
+.hint, .status { margin: 10px 0 0; color: var(--muted); font-size: 12px; }
+.status[data-tone="error"] { color: var(--accent); }
+.status[data-tone="success"] { color: var(--secondary); }
+.login-link { display: flex; align-items: center; justify-content: center; margin-top: 12px; color: var(--accent); }
+.login-link[hidden] { display: none; }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #16140f;
+    --surface: #201d17;
+    --ink: #f2ecdf;
+    --secondary: #b4ab98;
+    --muted: #756d5e;
+    --border: #34302a;
+    --accent: #e08a5c;
+    --accent-soft: #3a2a22;
+  }
+  button { color: #16140f; }
+}

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Verso</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="wordmark">Verso</p>
+        <p id="tab-title" class="tab-title">Membaca tab aktif…</p>
+      </header>
+
+      <section id="setup" hidden>
+        <label for="server-url">Alamat server Verso</label>
+        <input id="server-url" type="url" inputmode="url" placeholder="http://localhost:3000" />
+        <button id="save-server" type="button">Simpan alamat</button>
+        <p class="hint">Extension hanya meminta akses ke server yang kamu pilih.</p>
+      </section>
+
+      <section id="archive" hidden>
+        <button id="save-tab" type="button">Simpan tab ini</button>
+        <button id="change-server" class="quiet" type="button">Ganti alamat server</button>
+      </section>
+
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <a id="login-link" class="login-link" target="_blank" hidden>Masuk ke Verso</a>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
