@@ -10,7 +10,6 @@ import type { Document, DocumentType } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { logout } from "@/app/login/actions";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { withSignedCoverUrls } from "@/lib/document-covers";
 
@@ -37,6 +36,7 @@ export function Vault({ initialDocuments = [], userEmail, loadError }: { initial
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [pendingDocumentId, setPendingDocumentId] = useState<string | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     if (!successMessage) return;
@@ -99,6 +99,29 @@ export function Vault({ initialDocuments = [], userEmail, loadError }: { initial
     localStorage.setItem("verso-theme", next);
   };
 
+  async function handleLogout() {
+    if (loggingOut) return;
+
+    setLoggingOut(true);
+    setActionError(null);
+    const supabase = createBrowserClient();
+
+    if (!supabase) {
+      setActionError("Sesi belum dapat ditutup. Muat ulang halaman lalu coba lagi.");
+      setLoggingOut(false);
+      return;
+    }
+
+    const { error } = await supabase.auth.signOut({ scope: "local" });
+    if (error) {
+      setActionError("Sesi belum dapat ditutup. Coba lagi.");
+      setLoggingOut(false);
+      return;
+    }
+
+    window.location.replace("/login");
+  }
+
   async function handleSaved() {
     setUploadOpen(false);
     setSuccessMessage("Bacaan berhasil disimpan.");
@@ -131,7 +154,9 @@ export function Vault({ initialDocuments = [], userEmail, loadError }: { initial
             <Moon className="theme-light-control" size={18} strokeWidth={1.5} /><Sun className="theme-dark-control" size={18} strokeWidth={1.5} />
             <span className="theme-light-control">Mode gelap</span><span className="theme-dark-control">Mode terang</span>
           </button>
-          <form action={logout}><button className="nav-item" type="submit"><LogOut size={18} strokeWidth={1.5} /><span>Keluar</span></button></form>
+          <button className="nav-item" type="button" onClick={handleLogout} disabled={loggingOut} aria-busy={loggingOut}>
+            <LogOut size={18} strokeWidth={1.5} /><span>{loggingOut ? "Sedang keluar…" : "Keluar"}</span>
+          </button>
         </div>
       </aside>
 
