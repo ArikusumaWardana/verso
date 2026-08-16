@@ -42,16 +42,21 @@ export async function POST(request: Request) {
     if (isPdf) {
       const parsed = await parsePdf(fetched.buffer);
       const path = `${userId}/${documentId}/original.pdf`;
+      let coverPath = parsed.cover ? `${userId}/${documentId}/cover.webp` : null;
       const { error: uploadError } = await supabase.storage.from("raw-documents").upload(path, fetched.buffer, { contentType: "application/pdf", upsert: false });
       if (uploadError) throw uploadError;
+      if (coverPath && parsed.cover) {
+        const { error: coverError } = await supabase.storage.from("covers").upload(coverPath, parsed.cover, { contentType: "image/webp", cacheControl: "31536000", upsert: false });
+        if (coverError) { console.warn("Verso could not store the PDF cover", coverError); coverPath = null; }
+      }
       const title = decodeURIComponent(fetched.finalUrl.pathname.split("/").pop() || "Paper").replace(/\.pdf$/i, "");
       const { error } = await supabase.from("documents").insert({
         id: documentId, user_id: userId, type: "pdf", source: ingestionSource, title,
         source_url: url.href, canonical_pdf_url: fetched.finalUrl.href, content_text: parsed.text,
         excerpt: excerpt(parsed.text), raw_file_path: path, raw_file_size_bytes: fetched.buffer.byteLength,
-        page_count: parsed.pageCount, reading_time_minutes: readingTime(parsed.text)
+        page_count: parsed.pageCount, cover_image_path: coverPath, reading_time_minutes: readingTime(parsed.text)
       });
-      if (error) { await supabase.storage.from("raw-documents").remove([path]); throw error; }
+      if (error) { await supabase.storage.from("raw-documents").remove([path]); if (coverPath) await supabase.storage.from("covers").remove([coverPath]); throw error; }
     } else {
       const parsed = parseArticle(fetched.buffer.toString("utf8"), fetched.finalUrl);
       if (parsed.citationPdfUrl) {
@@ -61,17 +66,22 @@ export async function POST(request: Request) {
         if (!looksLikePdf) throw new Error("Tautan PDF jurnal tidak mengarah ke berkas PDF");
         const extracted = await parsePdf(pdf.buffer);
         const path = `${userId}/${documentId}/original.pdf`;
+        let coverPath = extracted.cover ? `${userId}/${documentId}/cover.webp` : null;
         const { error: uploadError } = await supabase.storage.from("raw-documents").upload(path, pdf.buffer, { contentType: "application/pdf", upsert: false });
         if (uploadError) throw uploadError;
+        if (coverPath && extracted.cover) {
+          const { error: coverError } = await supabase.storage.from("covers").upload(coverPath, extracted.cover, { contentType: "image/webp", cacheControl: "31536000", upsert: false });
+          if (coverError) { console.warn("Verso could not store the PDF cover", coverError); coverPath = null; }
+        }
         const { error } = await supabase.from("documents").insert({
           id: documentId, user_id: userId, type: "pdf", source: ingestionSource, title: parsed.title,
           author: parsed.author, site_name: parsed.siteName, source_url: url.href,
           canonical_pdf_url: pdf.finalUrl.href, content_text: extracted.text,
           excerpt: parsed.excerpt || excerpt(extracted.text), raw_file_path: path,
-          raw_file_size_bytes: pdf.buffer.byteLength, page_count: extracted.pageCount,
+          raw_file_size_bytes: pdf.buffer.byteLength, page_count: extracted.pageCount, cover_image_path: coverPath,
           reading_time_minutes: readingTime(extracted.text)
         });
-        if (error) { await supabase.storage.from("raw-documents").remove([path]); throw error; }
+        if (error) { await supabase.storage.from("raw-documents").remove([path]); if (coverPath) await supabase.storage.from("covers").remove([coverPath]); throw error; }
       } else {
         const { error } = await supabase.from("documents").insert({
           id: documentId, user_id: userId, type: "article", source: ingestionSource, title: parsed.title,

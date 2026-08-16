@@ -12,5 +12,7 @@ export type Document = {
   excerpt: string | null;
   reading_time_minutes: number;
   page_count: number | null;
+  cover_image_path?: string | null;
+  cover_url?: string | null;
   created_at: string;
 };

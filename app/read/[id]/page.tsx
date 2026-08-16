@@ -1,8 +1,10 @@
-import { ArrowLeft, ExternalLink, FileText } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DocumentActions } from "@/components/document-actions";
+import { PdfReader } from "@/components/pdf-reader";
+import { ReadingProgress } from "@/components/reading-progress";
 import { resolveArchivedImages } from "@/lib/reader-html";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +50,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
 
   return (
     <main className="reader-page">
-      <div className="reader-progress" aria-hidden="true" />
+      {document.type === "article" && <ReadingProgress />}
       <header className="reader-header">
         <Link href="/" prefetch={false} className="reader-back"><ArrowLeft size={18} />Kembali ke arsip</Link>
         <div className="reader-toolbar">
@@ -60,12 +62,8 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
         <p className="eyebrow">{document.type === "pdf" ? "Paper" : document.site_name || "Artikel"}</p>
         <h1>{document.title}</h1>
         <p className="reader-byline">{[document.author, `${document.reading_time_minutes} menit baca`].filter(Boolean).join(" · ")}</p>
-        {document.type === "pdf" && pdfUrl ? (
-          <div className="pdf-reader">
-            <div className="pdf-label"><FileText size={18} /><span>PDF asli, {document.page_count ?? "?"} halaman</span></div>
-            <iframe title={document.title} src={pdfUrl} />
-            <details><summary>Baca teks hasil ekstraksi</summary><div className="reader-text">{document.content_text}</div></details>
-          </div>
+        {document.type === "pdf" ? (
+          <PdfReader title={document.title} pdfUrl={pdfUrl} pageCount={document.page_count} contentText={document.content_text} />
         ) : (
           <div className="reader-body" dangerouslySetInnerHTML={{ __html: articleHtml }} />
         )}

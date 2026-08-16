@@ -260,6 +260,8 @@ export type Database = {
           author: string
           created_at: string
           excerpt: string
+          headline: string
+          highlighted_title: string
           id: string
           rank: number
           reading_time_minutes: number
@@ -409,4 +411,3 @@ export const Constants = {
     },
   },
 } as const
-

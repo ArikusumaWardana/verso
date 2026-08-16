@@ -130,7 +130,19 @@ export async function parsePdf(buffer: Buffer) {
     const result = await parser.getText();
     const text = normalizeText(result.text);
     if (!text) throw new Error("PDF tidak memiliki teks yang dapat dipilih");
-    return { text, pageCount: result.total };
+    let cover: Buffer | null = null;
+    try {
+      const screenshot = await parser.getScreenshot({ partial: [1], desiredWidth: 960, imageBuffer: true, imageDataUrl: false });
+      const firstPage = screenshot.pages[0];
+      if (firstPage?.data?.length) {
+        cover = await sharp(Buffer.from(firstPage.data), { limitInputPixels: 40_000_000 })
+          .webp({ quality: 75 })
+          .toBuffer();
+      }
+    } catch (coverError) {
+      console.warn("Verso could not render the PDF cover", coverError);
+    }
+    return { text, pageCount: result.total, cover };
   } finally {
     await parser.destroy();
   }

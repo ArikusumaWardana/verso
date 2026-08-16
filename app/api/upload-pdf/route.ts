@@ -12,6 +12,7 @@ export async function POST(request: Request) {
   if (!userId) return NextResponse.json({ error: "Sesi sudah berakhir. Masuk kembali." }, { status: 401 });
 
   let path: string | null = null;
+  let coverPath: string | null = null;
   try {
     const body = await request.json() as { documentId?: string; fileName?: string; fileSize?: number };
     const documentId = body.documentId?.trim() ?? "";
@@ -31,18 +32,26 @@ export async function POST(request: Request) {
     if (storedFile.size !== fileSize) throw new Error("Ukuran PDF yang diunggah tidak sesuai");
     const buffer = Buffer.from(await storedFile.arrayBuffer());
     const parsed = await parsePdf(buffer);
+    if (parsed.cover) {
+      coverPath = `${userId}/${documentId}/cover.webp`;
+      const { error: coverError } = await supabase.storage.from("covers").upload(coverPath, parsed.cover, {
+        contentType: "image/webp", cacheControl: "31536000", upsert: false
+      });
+      if (coverError) { console.warn("Verso could not store the PDF cover", coverError); coverPath = null; }
+    }
 
     const title = fileName.replace(/\.pdf$/i, "").trim().slice(0, 500) || "Paper tanpa judul";
     const { error } = await supabase.from("documents").insert({
       id: documentId, user_id: userId, type: "pdf", source: "file_upload", title,
       content_text: parsed.text, excerpt: excerpt(parsed.text), raw_file_path: path,
       raw_file_size_bytes: fileSize, page_count: parsed.pageCount,
-      reading_time_minutes: readingTime(parsed.text)
+      cover_image_path: coverPath, reading_time_minutes: readingTime(parsed.text)
     });
     if (error) throw error;
     return NextResponse.json({ id: documentId }, { status: 201 });
   } catch (error) {
     if (path) await supabase.storage.from("raw-documents").remove([path]);
+    if (coverPath) await supabase.storage.from("covers").remove([coverPath]);
     return NextResponse.json({ error: error instanceof Error ? error.message : "PDF tidak dapat disimpan" }, { status: 400 });
   }
 }
