@@ -6,11 +6,11 @@ import { AuthSubmitButtons } from "@/components/auth-submit-buttons";
 
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string; next?: string }> }) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   if (data?.claims) redirect("/");
-  const { error, message } = await searchParams;
+  const { error, message, next } = await searchParams;
 
   return (
     <main className="login-page">
@@ -25,6 +25,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       </section>
       <section className="login-panel">
         <form action={login} className="login-form">
+          {next && <input type="hidden" name="next" value={next} />}
           <div><p className="eyebrow">Masuk ke arsip</p><h2>Selamat datang kembali</h2></div>
           {error && <p className="form-error" role="alert">{error}</p>}
           {message && <p className="form-message" role="status">{message}</p>}

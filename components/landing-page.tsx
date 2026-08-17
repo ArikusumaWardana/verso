@@ -124,7 +124,7 @@ export function LandingPage() {
       </section>
 
       <section className="landing-section feature-section extension-section">
-        <motion.div className="feature-copy" {...revealMotion}><p className="section-kicker">Ekstensi Chrome</p><h2 className="section-title">Satu klik dari tab mana pun</h2><p>Tidak perlu membuka dashboard. Klik ikon Verso, lalu halaman yang sedang dibaca langsung tersimpan lengkap dengan gambar dan teksnya.</p><small>Manifest V3 · Chrome & browser berbasis Chromium</small></motion.div>
+        <motion.div className="feature-copy" {...revealMotion}><p className="section-kicker">Ekstensi & handphone</p><h2 className="section-title">Simpan dari browser yang sedang dipakai</h2><p>Di desktop, klik ikon Verso pada toolbar. Di Android, bagikan halaman ke Verso lalu konfirmasi tautannya. Keduanya memakai pipeline arsip yang sama.</p><small>Manifest V3 · Web Share Target</small></motion.div>
         <motion.div className="extension-preview" {...revealMotion} whileHover={reduceMotion ? undefined : { y: -2 }}><div className="extension-head"><Chrome size={19} /><span>Verso</span></div><p>Simpan halaman ini ke arsip bacaanmu.</p><div className="extension-page">aeon.co · The quiet architecture…</div><motion.button type="button" whileTap={reduceMotion ? undefined : { y: 1 }}><Check size={17} /> Simpan tab ini</motion.button></motion.div>
       </section>
 

@@ -225,6 +225,29 @@ Setelah mengubah file dalam folder `extension`:
 
 Buka `chrome://extensions`, cari Verso, lalu klik **Remove**. Tindakan ini tidak menghapus dokumen yang sudah tersimpan di Supabase.
 
+## Menyimpan dari handphone
+
+Verso menyediakan Web Share Target untuk browser mobile yang mendukung PWA, terutama Chrome dan browser Chromium di Android.
+
+### Pasang Verso di layar utama
+
+1. Buka deployment Verso melalui HTTPS di handphone.
+2. Login ke akun Verso.
+3. Buka menu browser lalu pilih **Instal aplikasi** atau **Tambahkan ke layar utama**.
+4. Selesaikan pemasangan agar Verso terdaftar pada menu Bagikan perangkat.
+
+### Bagikan artikel ke Verso
+
+1. Buka artikel atau tautan PDF di browser.
+2. Tekan **Bagikan**.
+3. Pilih **Verso** dari daftar aplikasi.
+4. Periksa tautan pada halaman konfirmasi.
+5. Tekan **Simpan ke Verso**.
+
+Membuka halaman konfirmasi tidak langsung menyimpan bacaan. Ingestion baru dimulai setelah tombol **Simpan ke Verso** ditekan. Jika sesi sudah berakhir, Verso meminta login lalu mengembalikan pengguna ke tautan yang sedang dibagikan.
+
+Web Share Target belum tersedia secara konsisten di seluruh browser iPhone dan iPad. Pada perangkat yang tidak menampilkan Verso di menu Bagikan, buka dashboard dan tempel tautan melalui tombol **Simpan bacaan**.
+
 ## Penyimpanan dan keamanan
 
 - Semua tabel publik memakai RLS.
@@ -243,6 +266,7 @@ app/
   api/upload-pdf/       upload PDF lokal
   api/search/           full-text search
   read/[id]/            reader artikel dan PDF
+  save/                 konfirmasi tautan dari menu Bagikan mobile
 components/
   vault.tsx             dashboard, pencarian, dan dialog upload
 extension/              Chrome Extension Manifest V3

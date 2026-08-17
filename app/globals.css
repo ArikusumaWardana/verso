@@ -135,6 +135,23 @@ h1 { margin: 0; font: 580 clamp(32px, 4vw, 46px)/1.05 var(--font-display), serif
 .secondary-button:disabled { opacity: .48; cursor: not-allowed; }
 .form-note { color: var(--text-muted); font-size: 12px; text-align: center; }
 
+.mobile-save-page { min-height: 100dvh; background: var(--bg); }
+.mobile-save-header { width: min(760px, calc(100% - 36px)); height: 68px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+.mobile-save-header a { min-height: 44px; display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); text-decoration: none; }
+.mobile-save-header strong { font: 580 21px/1 var(--font-display), serif; }
+.mobile-save-panel { width: min(620px, calc(100% - 36px)); min-height: calc(100dvh - 68px); margin: 0 auto; padding: 64px 0; display: grid; align-items: center; }
+.mobile-save-form, .mobile-save-success { padding: clamp(24px, 6vw, 44px); border: 1px solid var(--border); border-radius: 8px; background: var(--bg-elevated); }
+.mobile-save-mark { width: 52px; height: 62px; margin-bottom: 28px; display: grid; place-items: center; border: 1px solid var(--border); color: var(--accent); }
+.mobile-save-form h1, .mobile-save-success h1 { margin: 0; font-size: clamp(34px, 8vw, 48px); }
+.mobile-save-form > p:not(.eyebrow):not(.form-error), .mobile-save-success > p:not(.eyebrow) { margin: 18px 0 28px; color: var(--text-secondary); line-height: 1.65; }
+.mobile-save-form .shared-page-title { margin-bottom: 18px !important; padding: 12px 14px; border-left: 2px solid var(--border); background: var(--bg); color: var(--text-primary) !important; font: 540 16px/1.45 var(--font-display), serif; }
+.mobile-save-form label { display: block; margin-bottom: 9px; color: var(--text-secondary); font-size: 13px; }
+.mobile-save-form input { width: 100%; height: 50px; padding: 0 13px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text-primary); }
+.mobile-save-form .form-error { margin: 14px 0 0; }
+.mobile-save-form .primary-button { width: 100%; margin-top: 18px; }
+.mobile-save-success > svg { margin-bottom: 26px; color: var(--accent); }
+.mobile-save-success .primary-button { margin-top: 5px; }
+
 /* Public landing page */
 .landing-page { min-height: 100dvh; overflow: clip; }
 .landing-page a { color: inherit; text-decoration: none; }
@@ -251,7 +268,7 @@ h1 { margin: 0; font: 580 clamp(32px, 4vw, 46px)/1.05 var(--font-display), serif
 
 .reader-page { min-height: 100dvh; padding-bottom: 64px; }
 .reader-progress { --reading-progress: 0; position: fixed; inset: 0 0 auto; height: 2px; background: var(--accent); z-index: 20; transform: scaleX(var(--reading-progress)); transform-origin: left; }
-.reader-header { min-height: 68px; padding: 0 clamp(18px, 4vw, 52px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+.reader-header { position: sticky; top: 0; z-index: 15; min-height: 68px; padding: 0 clamp(18px, 4vw, 52px); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); background: var(--bg); }
 .reader-back { min-height: 44px; display: inline-flex; align-items: center; gap: 9px; color: var(--text-secondary); text-decoration: none; }
 .reader-toolbar, .reader-actions { display: flex; align-items: center; gap: 3px; }
 .reader-toolbar > a, .reader-actions button { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: transparent; color: var(--text-secondary); cursor: pointer; }
