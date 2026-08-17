@@ -56,7 +56,10 @@ async function fetchSafe(url: URL, headers: HeadersInit) {
 
 export async function fetchBounded(url: URL) {
   const { response, finalUrl } = await fetchSafe(url, { "User-Agent": "Verso/0.1 (+personal knowledge archive)" });
-  if (!response.ok) throw new Error(`Sumber merespons dengan status ${response.status}`);
+  if (!response.ok) {
+    console.warn("Verso source request was rejected", { url: finalUrl.href, status: response.status });
+    throw new Error(sourceAccessMessage(response.status));
+  }
   const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
   const declaredSize = Number(response.headers.get("content-length") ?? 0);
   const max = contentType.includes("pdf") ? MAX_PDF_BYTES : MAX_HTML_BYTES;
@@ -64,6 +67,22 @@ export async function fetchBounded(url: URL) {
   const buffer = Buffer.from(await response.arrayBuffer());
   if (buffer.byteLength > max) throw new Error("Ukuran sumber melewati batas Verso");
   return { buffer, contentType, finalUrl };
+}
+
+function sourceAccessMessage(status: number) {
+  if (status === 401 || status === 403) {
+    return "Situs sumber membatasi akses otomatis. Coba gunakan tautan unduhan PDF atau unggah berkasnya langsung.";
+  }
+  if (status === 404) return "Halaman sumber tidak ditemukan. Periksa kembali tautan yang dimasukkan.";
+  if (status === 429) return "Situs sumber sedang membatasi permintaan. Tunggu sebentar lalu coba lagi.";
+  if (status >= 500) return "Situs sumber sedang bermasalah. Coba lagi beberapa saat nanti.";
+  return "Sumber belum dapat diakses. Periksa tautannya lalu coba lagi.";
+}
+
+export function isPdfDocument(source: { buffer: Buffer; contentType: string; finalUrl: URL }) {
+  const signature = source.buffer.subarray(0, 1024).includes(Buffer.from("%PDF-"));
+  return source.contentType.includes("application/pdf") ||
+    source.finalUrl.pathname.toLowerCase().endsWith(".pdf") || signature;
 }
 
 export async function fetchArticleImage(input: string, baseUrl: URL) {
@@ -151,7 +170,12 @@ export async function parsePdf(buffer: Buffer) {
 export function parseArticle(html: string, url: URL) {
   const dom = new JSDOM(html, { url: url.href });
   normalizeArticleAssets(dom.window.document, url);
-  const citationPdf = dom.window.document.querySelector('meta[name="citation_pdf_url"]')?.getAttribute("content");
+  const citationPdf = resolveHttpUrl(
+    dom.window.document.querySelector('meta[name="citation_pdf_url"]')?.getAttribute("content"),
+    url
+  );
+  const ojsPdf = citationPdf ? null : findOjsViewerPdf(dom.window.document, url);
+  const pdfCandidate = citationPdf || ojsPdf;
   const citationTitle = dom.window.document.querySelector('meta[name="citation_title"]')?.getAttribute("content")?.trim();
   const citationAuthors = Array.from(dom.window.document.querySelectorAll('meta[name="citation_author"]'))
     .map((meta) => meta.getAttribute("content")?.trim())
@@ -161,10 +185,10 @@ export function parseArticle(html: string, url: URL) {
   const documentTitle = dom.window.document.title.trim();
   const structuredBody = findStructuredArticleBody(dom.window.document);
   const article = new Readability(dom.window.document, { charThreshold: 120 }).parse();
-  if ((!article?.textContent || !article.title) && !citationPdf) {
+  if ((!article?.textContent || !article.title) && !pdfCandidate) {
     throw new Error("Teks utama artikel tidak dapat diekstrak");
   }
-  const title = article?.title?.trim() || citationTitle || documentTitle || "Paper tanpa judul";
+  const title = cleanViewerTitle(article?.title?.trim() || citationTitle || documentTitle) || "Paper tanpa judul";
   const readabilityText = normalizeText(article?.textContent ?? title);
   const contentText = structuredBody && structuredBody.length > readabilityText.length * 1.2
     ? structuredBody
@@ -184,8 +208,37 @@ export function parseArticle(html: string, url: URL) {
     }),
     contentText,
     excerpt: article?.excerpt?.trim() || null,
-    citationPdfUrl: citationPdf ? new URL(citationPdf, url).href : null
+    citationPdfUrl: pdfCandidate
   };
+}
+
+function resolveHttpUrl(value: string | null | undefined, baseUrl: URL) {
+  if (!value) return null;
+  try {
+    const resolved = new URL(value, baseUrl);
+    return resolved.protocol === "http:" || resolved.protocol === "https:" ? resolved.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function findOjsViewerPdf(document: Document, viewerUrl: URL) {
+  const viewerMatch = viewerUrl.pathname.match(/\/article\/view\/(\d+)\/(\d+)\/?$/i);
+  if (!viewerMatch) return null;
+  const [, articleId, galleyId] = viewerMatch;
+  const expectedPath = new RegExp(`/article/download/${articleId}/${galleyId}(?:/\\d+)?/?$`, "i");
+
+  for (const anchor of document.querySelectorAll<HTMLAnchorElement>('a[href*="/article/download/"]')) {
+    const candidate = resolveHttpUrl(anchor.getAttribute("href"), viewerUrl);
+    if (!candidate) continue;
+    const parsed = new URL(candidate);
+    if (parsed.origin === viewerUrl.origin && expectedPath.test(parsed.pathname)) return parsed.href;
+  }
+  return null;
+}
+
+function cleanViewerTitle(value: string | null | undefined) {
+  return value?.replace(/^View of\s+/i, "").trim() || "";
 }
 
 function normalizeArticleAssets(document: Document, baseUrl: URL) {

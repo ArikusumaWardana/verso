@@ -8,6 +8,7 @@ import {
   excerpt,
   fetchArticleImage,
   fetchBounded,
+  isPdfDocument,
   parseArticle,
   parsePdf,
   readingTime
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
     await supabase.from("ingestion_jobs").update({ status: "processing", started_at: new Date().toISOString() }).eq("id", job.id);
 
     const fetched = await fetchBounded(url);
-    const isPdf = fetched.contentType.includes("application/pdf") || fetched.finalUrl.pathname.toLowerCase().endsWith(".pdf");
+    const isPdf = isPdfDocument(fetched);
     const documentId = randomUUID();
 
     if (isPdf) {
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
       if (parsed.citationPdfUrl) {
         const pdfUrl = await assertSafeUrl(parsed.citationPdfUrl);
         const pdf = await fetchBounded(pdfUrl);
-        const looksLikePdf = pdf.contentType.includes("application/pdf") || pdf.finalUrl.pathname.toLowerCase().endsWith(".pdf");
+        const looksLikePdf = isPdfDocument(pdf);
         if (!looksLikePdf) throw new Error("Tautan PDF jurnal tidak mengarah ke berkas PDF");
         const extracted = await parsePdf(pdf.buffer);
         const path = `${userId}/${documentId}/original.pdf`;

@@ -1,11 +1,11 @@
-import { ArrowLeft, ExternalLink } from "lucide-react";
-import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DocumentActions } from "@/components/document-actions";
 import { PdfReader } from "@/components/pdf-reader";
 import { ReadingProgress } from "@/components/reading-progress";
 import { resolveArchivedImages } from "@/lib/reader-html";
+import { ReaderBackLink } from "@/components/reader-back-link";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +52,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
     <main className="reader-page">
       {document.type === "article" && <ReadingProgress />}
       <header className="reader-header">
-        <Link href="/" prefetch={false} className="reader-back"><ArrowLeft size={18} />Kembali ke arsip</Link>
+        <ReaderBackLink />
         <div className="reader-toolbar">
           {document.source_url && <a href={document.source_url} target="_blank" rel="noreferrer" aria-label="Buka sumber asli"><ExternalLink size={18} /></a>}
           <DocumentActions id={document.id} starred={document.status === "starred"} />

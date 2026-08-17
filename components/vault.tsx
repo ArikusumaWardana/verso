@@ -65,6 +65,7 @@ export function Vault({ initialDocuments = [], userEmail, loadError }: { initial
     if (filter === "archived") return document.status === "archived";
     return document.type === filter && document.status !== "archived";
   }), [allDocuments, filter]);
+  const eagerCoverId = documents.find((document) => document.cover_url)?.id;
 
   async function updateDocument(id: string, status: Document["status"]) {
     setPendingDocumentId(id);
@@ -184,7 +185,7 @@ export function Vault({ initialDocuments = [], userEmail, loadError }: { initial
 
         {documents.length ? (
           <motion.section className="document-grid" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.03 } } }}>
-            {documents.map((document) => <DocumentCard key={document.id} document={document} busy={pendingDocumentId === document.id} onStatus={updateDocument} onDelete={deleteDocument} />)}
+            {documents.map((document) => <DocumentCard key={document.id} document={document} eagerCover={document.id === eagerCoverId} busy={pendingDocumentId === document.id} onStatus={updateDocument} onDelete={deleteDocument} />)}
           </motion.section>
         ) : (
           <EmptyState archived={filter === "archived"} onAdd={() => setUploadOpen(true)} />
@@ -214,11 +215,11 @@ export function Vault({ initialDocuments = [], userEmail, loadError }: { initial
   );
 }
 
-function DocumentCard({ document, busy, onStatus, onDelete }: { document: Document; busy: boolean; onStatus: (id: string, status: Document["status"]) => void; onDelete: (id: string) => void }) {
+function DocumentCard({ document, eagerCover, busy, onStatus, onDelete }: { document: Document; eagerCover: boolean; busy: boolean; onStatus: (id: string, status: Document["status"]) => void; onDelete: (id: string) => void }) {
   const date = new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short" }).format(new Date(document.created_at));
   return (
     <motion.article className="document-card" variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease } } }} whileHover={{ y: -2 }}>
-      {document.cover_url ? <div className="card-cover"><Image src={document.cover_url} alt="" width={640} height={360} unoptimized /></div> : <div className="card-index" aria-hidden="true">{document.type === "article" ? "Aa" : "§"}</div>}
+      {document.cover_url ? <div className="card-cover"><Image src={document.cover_url} alt="" width={640} height={360} loading={eagerCover ? "eager" : "lazy"} unoptimized /></div> : <div className="card-index" aria-hidden="true">{document.type === "article" ? "Aa" : "§"}</div>}
       <div className="card-meta"><span>{document.type === "article" ? "ARTICLE" : "PDF"}</span><span>{date}</span></div>
       <h2>{document.title}</h2>
       <p className="byline">{document.author}{document.site_name ? ` · ${document.site_name}` : ""}</p>
