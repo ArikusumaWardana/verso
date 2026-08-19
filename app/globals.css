@@ -82,7 +82,7 @@ h1 { margin: 0; font: 580 clamp(32px, 4vw, 46px)/1.05 var(--font-display), serif
 .success-toast button:hover { color: var(--accent); background: var(--accent-soft); }
 
 .dialog-backdrop { position: fixed; inset: 0; z-index: 50; padding: 8vh 18px 18px; display: grid; place-items: start center; background: rgb(18 15 11 / 48%); }
-.search-dialog, .add-dialog { width: min(640px, 100%); border: 1px solid var(--border); border-radius: 8px; background: var(--bg-elevated); box-shadow: 0 16px 50px rgb(25 18 10 / 18%); }
+.search-dialog, .add-dialog, .extension-dialog { width: min(640px, 100%); border: 1px solid var(--border); border-radius: 8px; background: var(--bg-elevated); box-shadow: 0 16px 50px rgb(25 18 10 / 18%); }
 .dialog-search { min-height: 62px; padding-left: 18px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
 .dialog-search input { min-width: 0; height: 60px; border: 0; outline: 0; background: transparent; color: var(--text-primary); font-size: 18px; }
 .dialog-search input::placeholder { color: var(--text-muted); }
@@ -99,6 +99,19 @@ h1 { margin: 0; font: 580 clamp(32px, 4vw, 46px)/1.05 var(--font-display), serif
 .add-dialog { padding: 26px; }
 .dialog-title { display: flex; justify-content: space-between; align-items: flex-start; }
 .dialog-title h2 { margin: 0; font: 570 28px/1.1 var(--font-display), serif; }
+.extension-dialog { width: min(700px, 100%); max-height: calc(100dvh - 10vh); padding: 26px; overflow-y: auto; }
+.extension-intro { max-width: 57ch; margin: 20px 0 24px; color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
+.extension-steps { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--border); }
+.extension-steps li { min-width: 0; padding: 18px 0; display: grid; grid-template-columns: 34px minmax(0, 1fr) 24px; gap: 12px; border-bottom: 1px solid var(--border); }
+.extension-steps li > svg { margin-top: 1px; color: var(--text-muted); }
+.step-number { padding-top: 2px; color: var(--accent); font: 500 11px/1 var(--font-mono), monospace; }
+.extension-steps strong { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; }
+.extension-steps p { margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.55; }
+.extension-steps code { padding: 2px 4px; border: 1px solid var(--border); border-radius: 3px; background: var(--bg); color: var(--text-primary); font: 11px/1.4 var(--font-mono), monospace; overflow-wrap: anywhere; }
+.extension-note { margin: 18px 0 0; padding: 12px 14px; border-left: 2px solid var(--accent); background: var(--accent-soft); color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+.extension-actions { margin-top: 22px; display: flex; justify-content: flex-end; gap: 10px; }
+.extension-actions a { text-decoration: none; }
+.extension-actions .secondary-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 .tab-list { margin: 28px 0 24px; display: flex; gap: 20px; border-bottom: 1px solid var(--border); }
 .tab-list button { min-height: 44px; padding: 0 2px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-secondary); cursor: pointer; }
 .tab-list button.active { border-color: var(--accent); color: var(--text-primary); }
@@ -373,7 +386,12 @@ h1 { margin: 0; font: 580 clamp(32px, 4vw, 46px)/1.05 var(--font-display), serif
   .document-grid { grid-template-columns: 1fr; gap: 14px; }
   .document-card { min-height: 320px; padding: 19px; }
   .dialog-backdrop { padding: 12px; place-items: center; }
-  .add-dialog { padding: 20px; }
+  .add-dialog, .extension-dialog { padding: 20px; }
+  .extension-dialog { max-height: calc(100dvh - 24px); }
+  .extension-steps li { grid-template-columns: 30px minmax(0, 1fr); }
+  .extension-steps li > svg { display: none; }
+  .extension-actions { align-items: stretch; flex-direction: column-reverse; }
+  .extension-actions a { width: 100%; }
   .dialog-footer { display: none; }
   .success-toast { right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); width: calc(100vw - 24px); }
   .reader-header { padding: 0 10px 0 16px; }

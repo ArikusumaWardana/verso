@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Verso",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Simpan tab aktif ke arsip Verso.",
   "permissions": ["activeTab", "storage"],
   "optional_host_permissions": ["http://*/*", "https://*/*"],

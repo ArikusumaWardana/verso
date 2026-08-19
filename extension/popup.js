@@ -22,6 +22,27 @@ function normalizeServerUrl(value) {
   return url.origin;
 }
 
+async function readApiResponse(response) {
+  const body = await response.text();
+  if (!body.trim()) return { error: responseMessage(response) };
+
+  try {
+    const parsed = JSON.parse(body);
+    return parsed && typeof parsed === "object" ? parsed : { error: responseMessage(response) };
+  } catch {
+    return { error: responseMessage(response) };
+  }
+}
+
+function responseMessage(response) {
+  if (response.status === 401) return "Sesi Verso sudah berakhir. Masuk kembali lalu coba lagi.";
+  if (response.status === 404) return "API Verso tidak ditemukan. Periksa kembali alamat server.";
+  if (response.status === 408 || response.status === 504) return "Proses penyimpanan terlalu lama. Coba lagi beberapa saat nanti.";
+  if (response.status >= 500) return "Server Verso sedang bermasalah. Coba lagi beberapa saat nanti.";
+  if (response.ok) return "Respons server tidak dapat dibaca. Pastikan alamat mengarah ke deployment Verso.";
+  return "Tab belum dapat disimpan. Periksa alamat server lalu coba lagi.";
+}
+
 function showSetup() {
   setup.hidden = false;
   archive.hidden = true;
@@ -70,10 +91,10 @@ saveTabButton.addEventListener("click", async () => {
     const response = await fetch(`${serverUrl}/api/archive`, {
       method: "POST",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
       body: JSON.stringify({ url: activeTab.url, source: "extension" })
     });
-    const result = await response.json();
+    const result = await readApiResponse(response);
     if (!response.ok) {
       if (response.status === 401) {
         loginLink.href = `${serverUrl}/login`;
@@ -81,6 +102,7 @@ saveTabButton.addEventListener("click", async () => {
       }
       throw new Error(result.error || "Tab belum dapat disimpan");
     }
+    if (result.error) throw new Error(result.error);
     setStatus("Tersimpan di arsip.", "success");
     saveTabButton.textContent = "Sudah tersimpan";
   } catch (error) {

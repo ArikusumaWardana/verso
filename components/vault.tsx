@@ -2,8 +2,8 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Archive, ArchiveRestore, BookOpen, CheckCircle2, ChevronRight, FileText, Library, Menu, Moon, Plus,
-  LogOut, Search, Star, Sun, Trash2, Upload, X
+  Archive, ArchiveRestore, BookOpen, CheckCircle2, ChevronRight, Download, ExternalLink, FileText,
+  FolderOpen, Library, Menu, Moon, Plus, Puzzle, LogOut, Search, Star, Sun, Trash2, Upload, X
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { Document, DocumentType } from "@/lib/types";
@@ -32,6 +32,7 @@ export function Vault({ initialDocuments = [], userEmail, loadError }: { initial
   const [filter, setFilter] = useState<Filter>("all");
   const [searchOpen, setSearchOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [extensionGuideOpen, setExtensionGuideOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -53,6 +54,7 @@ export function Vault({ initialDocuments = [], userEmail, loadError }: { initial
       if (event.key === "Escape") {
         setSearchOpen(false);
         setUploadOpen(false);
+        setExtensionGuideOpen(false);
       }
     }
     window.addEventListener("keydown", onKeyDown);
@@ -151,6 +153,7 @@ export function Vault({ initialDocuments = [], userEmail, loadError }: { initial
         <div className="sidebar-bottom">
           {userEmail && <p className="account-email" title={userEmail}>{userEmail}</p>}
           <button className="nav-item" onClick={() => setUploadOpen(true)}><Upload size={18} strokeWidth={1.5} /><span>Tambahkan bacaan</span></button>
+          <button className="nav-item" type="button" onClick={() => { setExtensionGuideOpen(true); setMenuOpen(false); }}><Puzzle size={18} strokeWidth={1.5} /><span>Pasang extension</span></button>
           <button className="nav-item theme-toggle" onClick={toggleTheme} aria-label="Ubah tema warna">
             <Moon className="theme-light-control" size={18} strokeWidth={1.5} /><Sun className="theme-dark-control" size={18} strokeWidth={1.5} />
             <span className="theme-light-control">Mode gelap</span><span className="theme-dark-control">Mode terang</span>
@@ -195,6 +198,7 @@ export function Vault({ initialDocuments = [], userEmail, loadError }: { initial
       <AnimatePresence>
         {searchOpen && <SearchDialog onClose={() => setSearchOpen(false)} />}
         {uploadOpen && <AddDialog onClose={() => setUploadOpen(false)} onSaved={handleSaved} />}
+        {extensionGuideOpen && <ExtensionGuideDialog onClose={() => setExtensionGuideOpen(false)} />}
         {successMessage && (
           <motion.div
             className="success-toast"
@@ -212,6 +216,45 @@ export function Vault({ initialDocuments = [], userEmail, loadError }: { initial
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function ExtensionGuideDialog({ onClose }: { onClose: () => void }) {
+  const repositoryUrl = "https://github.com/ArikusumaWardana/verso-arsip";
+  const downloadUrl = `${repositoryUrl}/archive/refs/heads/main.zip`;
+
+  return (
+    <motion.div className="dialog-backdrop" onMouseDown={onClose} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+      <motion.div className="extension-dialog" role="dialog" aria-modal="true" aria-labelledby="extension-guide-title" onMouseDown={(event) => event.stopPropagation()} initial={{ opacity: 0, y: 8, scale: 0.99 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.99 }} transition={{ duration: 0.22, ease }}>
+        <div className="dialog-title">
+          <div><p className="eyebrow">Extension Chrome</p><h2 id="extension-guide-title">Simpan bacaan dari tab aktif</h2></div>
+          <button className="icon-button" type="button" onClick={onClose} aria-label="Tutup panduan"><X size={19} /></button>
+        </div>
+        <p className="extension-intro">Unduh folder extension dari GitHub, lalu pasang secara lokal di Chrome. Proses ini cukup dilakukan sekali.</p>
+        <ol className="extension-steps">
+          <li>
+            <span className="step-number">01</span>
+            <div><strong>Unduh dan ekstrak repository</strong><p>Klik tombol unduh, buka berkas ZIP, lalu ekstrak seluruh isinya. Folder yang akan dipakai bernama <code>extension</code>.</p></div>
+            <Download size={19} strokeWidth={1.5} aria-hidden="true" />
+          </li>
+          <li>
+            <span className="step-number">02</span>
+            <div><strong>Muat extension di Chrome</strong><p>Buka <code>chrome://extensions</code>, aktifkan <b>Developer mode</b>, pilih <b>Load unpacked</b>, lalu pilih folder <code>verso-arsip-main/extension</code>.</p></div>
+            <FolderOpen size={19} strokeWidth={1.5} aria-hidden="true" />
+          </li>
+          <li>
+            <span className="step-number">03</span>
+            <div><strong>Hubungkan dengan Verso</strong><p>Sematkan extension dari menu puzzle Chrome. Buka Verso, isi alamat website Verso yang kamu gunakan, lalu pilih <b>Simpan alamat</b>.</p></div>
+            <Puzzle size={19} strokeWidth={1.5} aria-hidden="true" />
+          </li>
+        </ol>
+        <p className="extension-note">Pastikan kamu sudah masuk ke Verso pada profil Chrome yang sama sebelum menyimpan tab.</p>
+        <div className="extension-actions">
+          <a className="secondary-button" href={repositoryUrl} target="_blank" rel="noreferrer">Lihat repository <ExternalLink size={16} /></a>
+          <a className="primary-button" href={downloadUrl}>Unduh extension <Download size={17} /></a>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
